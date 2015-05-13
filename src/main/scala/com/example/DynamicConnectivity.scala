@@ -34,7 +34,7 @@ object DynamicConnectivity {
 
   //Returns the component identifier for the components containing site
   def Find(p:Int): Int ={
-//    Validate(p)
+    Validate(p)
     var oldP = p
     var root = oldP
     while(root != parent(root)){
@@ -86,6 +86,8 @@ object DynamicConnectivity {
   def main(args: Array[String]): Unit = {
     val pairs = Array((4,3), (3,8), (6,5), (9,4), (2,1), (8,9), (5,0), (7,2), (6,1), (1,0), (6,7))
     val distVals = 10
+
+
     WeightedQuickUnionPathCompressionUF(distVals)
 
     for(i <- 0 until pairs.length){
@@ -98,7 +100,5 @@ object DynamicConnectivity {
       }
     }
     println(count + " components")
-    println(parent + "component ids")
-    println(size)
   }
 }
