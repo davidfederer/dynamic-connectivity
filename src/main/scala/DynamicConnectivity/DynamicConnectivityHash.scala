@@ -3,10 +3,11 @@ package com.example
 //import scala.collection.mutable.ArrayBuffer
 //import scala.io.Source
 
-import collection.mutable
 import java.util.UUID
 
-object DynamicConnectivityHash1 {
+import scala.collection.mutable
+
+object DynamicConnectivityHash {
 
   //var parent = mutable.HashMap[String, mutable.Map[String, String]]()//parent if i
   //var size = mutable.HashMap[String, mutable.Map[String, Int]]() //number of objects in subtree rooted at i
@@ -14,7 +15,7 @@ object DynamicConnectivityHash1 {
   var parent = mutable.HashMap[String, String]()//parent if i
   var size = mutable.HashMap[String, Int]() //number of objects in subtree rooted at i
   var cluster = mutable.HashMap[String, String]()
-  var cluster_id = List[String]()
+  var cluster_id = List[Tuple2[String, String]]()
   var count = 0 // number of components
 
   //Initialises an empty union-find data structure with N isolated components 0 through N-1
@@ -73,12 +74,10 @@ object DynamicConnectivityHash1 {
     if(size(rootP) < size(rootQ)){
       parent(rootP) = rootQ
       size(rootQ) = size(rootQ) + size(rootP)
-      //parent.remove(rootP)
     }
     else{
       parent(rootQ) = rootP
       size(rootP) = size(rootQ) + size(rootP)
-      //parent.remove(rootQ)
     }
     count-= 1
   }
@@ -90,7 +89,7 @@ object DynamicConnectivityHash1 {
    */
 
   def main(args: Array[String]): Unit = {
-    val pairs = List(List("ct123", "ct456"), List("ct678","ct123"), List("ct678","ct567"), List("ct789", "cp345"), List("cp456", "cp678"))
+    val pairs = List(List("ct456", "ct123"), List("ct567","ct456"), List("ct567","ct478"), List("ct789", "cp345"), List("cp856", "cp678"))
     val distVals = pairs.flatten.distinct
 
 
@@ -105,9 +104,12 @@ object DynamicConnectivityHash1 {
         println(p,q)
       }
     }
-    
+
     for(i <- distVals){
-     println(cluster(find(i)), i)
+      cluster_id ::= (cluster(find(i)), i)
     }
+    println("cluster ids: "+cluster_id)
+
+    println("number of clusters: "+count)
   }
 }
