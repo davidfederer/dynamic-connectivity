@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dynamic-connectivity.iml" filepath="$PROJECT_DIR$/.idea/modules/dynamic-connectivity.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dynamic-connectivity-build.iml" filepath="$PROJECT_DIR$/.idea/modules/dynamic-connectivity-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dynamic_connectivity.iml" filepath="$PROJECT_DIR$/.idea/modules/dynamic_connectivity.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dynamic_connectivity-build.iml" filepath="$PROJECT_DIR$/.idea/modules/dynamic_connectivity-build.iml" />
     </modules>
   </component>
 </project>
