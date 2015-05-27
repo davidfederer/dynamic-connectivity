@@ -6,6 +6,8 @@
 import java.util.UUID
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
+import org.apache.spark.sql.types.{StructType, StructField, StringType};
 
 
 private val parent = mutable.HashMap[String, String]()
@@ -13,8 +15,9 @@ private val parent = mutable.HashMap[String, String]()
 private val size = mutable.HashMap[String, Int]()
   //number of objects in subtree rooted at i
 private val cluster = mutable.HashMap[String, String]()
+//private val component = mutable.HashMap[String, String]()
 private var count = 0 // number of components
-
+private val ecid_map = sqlContext.parquetFile("/data/cfs/dev01/work/custm/components").map(map(x => (x._1, x._2)))
 //Returns the number of components
 def countComponent(): Int = {
   return count
@@ -68,30 +71,40 @@ where each integer represents some object
 if the objects are in different components merge the two components*/
 
 
-case class prs(id0: String, id1: String)
 
 //val pairs = List(List("1", "2"), List("3", "1"), List("3", "4"), List("5", "6"), List("7", "8"))
-val pairs = sqlContext.sql("""SELECT id0, id1 FROM lighthouse_sandpit.customermatching_pow1_orc""").map(
-  col => prs(col(0).asInstanceOf[String], col(1).asInstanceOf[String])).map(x => {Array(x.id0, x.id1).mkString(",")}).toList
+val pairs = sqlContext.sql("SELECT id0, id1 FROM lighthouse_sandpit.customermatching_pow1_orc WHERE match_score >= 0.8").map(
+  row => (row(0).asInstanceOf[String], row(1).asInstanceOf[String])
+)
 
-for (i <- 0 until pairs.count) {
-  val p = pairs(i)(0)
-  val q = pairs(i)(1)
+for (i <- pairs.toArray) {
+  val p = i._1
+  val q = i._2
 
   checkIn(p)
   checkIn(q)
 
   if (!connected(p, q)) {
     union(p, q)
-    println(p, q)
+    //println(p, q)
   }
 }
 
+
+val p = ArrayBuffer[(String, String, String)]()
+
 for (i <- parent.keys) {
-  println(i + ", " + cluster(find(i)))
+  val t = (cluster(find(i)), ecid_map(i), i)
+  p += t
 }
 
-println("number of clusters: " + count)
+
+
+case class cmp(uuid: String, ecid: String, id: String)
+sc.parallellize(p).map(x => {cmp(x._1, x._2, x._3)}).toDF.saveAsParquet("/data/cfs/dev01/work/custm/components")
+
+
+//println("number of clusters: " + count)
 
 
 def checkIn(site: String): Unit = {
@@ -105,4 +118,3 @@ def checkIn(site: String): Unit = {
 
 
 
-//.coalesce(1, true).saveAsTextFile("<path>")
