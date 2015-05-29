@@ -4,27 +4,12 @@
 
 
 import java.util.UUID
-
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
-import org.apache.spark.sql.types.{StructType, StructField, StringType};
 
 val parent = mutable.HashMap[String, String]()  //parent if i
 val size = mutable.HashMap[String, Int]()  //number of objects in subtree rooted at i
 val cluster = mutable.HashMap[String, String]() //private val component = mutable.HashMap[String, String]()
-var count = 0 // number of components
-val ecid_map = mutable.HashMap[String, String]() //creates key value pairs for client ids and ecids
-
-
-//Returns the number of components
-def countComponent(): Int = {
-  return count
-}
-
-//Are two sites p and q in the same component
-def connected(p: String, q: String): Boolean = {
-  return find(p).equals(find(q))
-}
+val ecid_map = mutable.HashMap[String, Long]() //creates key value pairs for client ids and ecids
 
 
 //Returns the component identifier for the components containing site
@@ -40,6 +25,11 @@ def find(p: String): String = {
     oldP = newP
   }
   return root
+}
+
+//Are two sites p and q in the same component
+def connected(p: String, q: String): Boolean = {
+  return find(p).equals(find(q))
 }
 
 //Merges the component containing site p with the component containing site q
@@ -60,18 +50,13 @@ def union(p: String, q: String): Unit = {
     parent(rootQ) = rootP
     size(rootP) = size(rootQ) + size(rootP)
   }
-  count -= 1
 }
 
 
-val new_pairs = sqlContext.sql("SELECT id0, id1, ecid FROM lighthouse_sandpit.customermatching_pow1_orc WHERE match_score >= 0.8").map(
-  row => (row(0).asInstanceOf[String], row(1).asInstanceOf[String], row(2).asInstanceOf[String])
-)
-
-for (i <- new_pairs.toArray) {
-  val p = i._1
-  val q = i._2
-  val r = i._3
+for (i <- sqlContext.parquetFile("/data/cfs/dev01/work/custm/pow1_full_parquet").collect) {
+  val p = i(2).toString
+  val q = i(3).toString
+  val r = i(1).toLong
 
   checkIn(p, r)
   checkIn(q, r)
@@ -82,32 +67,20 @@ for (i <- new_pairs.toArray) {
 }
 
 
-//val p = ArrayBuffer[(String, String, String)]()
-//
-//for (i <- parent.keys) {
-//  val t = (cluster(find(i)), cid_map(i), i)
-//  p += t
-//}
-
-
 val p = parent.keys.map(
-  x => {(cluster(find(x)), {if (!ecid_map(x).isEmpty) ecid_map(x) else ""}, x)}
-)
+  x => {(cluster(find(x)), {if (ecid_map(x) > -1) ecid_map(x) else -1}, x)}
+).toSeq
 
 
-case class cmp(uuid: String, ecid: String, id: String)
-sc.parallellize(p).map(x => {cmp(x._1, x._2, x._3)}).toDF.saveAsParquet("/data/cfs/dev01/work/custm/components")
+case class cmp(uuid: String, ecid: Long, id: String)
+sc.parallelize(p).map(x => {cmp(x._1, x._2, x._3)}).toDF.saveAsParquetFile("/data/cfs/dev01/work/custm/components")
 
 
-//println("number of clusters: " + count)
-
-
-def checkIn(site: String, ecid: String): Unit = {
+def checkIn(site: String, ecid: Long): Unit = {
   if(!parent.contains(site)) {
     parent(site) = site
     size(site) = 1
     cluster(site) = UUID.randomUUID().toString
-    count = count + 1
     ecid_map(site) = ecid
   }
 }
