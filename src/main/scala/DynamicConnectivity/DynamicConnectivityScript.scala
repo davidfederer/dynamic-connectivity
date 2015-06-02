@@ -2,7 +2,6 @@
  * Created by david on 26/05/15.
  */
 
-
 import java.util.UUID
 import scala.collection.mutable
 
@@ -52,11 +51,19 @@ def union(p: String, q: String): Unit = {
   }
 }
 
+def checkIn(site: String, ecid: Long): Unit = {
+  if(!parent.contains(site)) {
+    parent(site) = site
+    size(site) = 1
+    cluster(site) = UUID.randomUUID().toString
+    ecid_map(site) = ecid
+  }
+}
 
-for (i <- sqlContext.parquetFile("/data/cfs/dev01/work/custm/pow1_full_parquet").collect) {
-  val p = i(2).toString
-  val q = i(3).toString
-  val r = i(1).toLong
+for (i <- sqlContext.parquetFile("/data/cfs/dev01/work/custm/pow1_full_parquet-1").collect) {
+  val p = i(2).asInstanceOf[String]
+  val q = i(3).asInstanceOf[String]
+  val r = i(1).asInstanceOf[Long]
 
   checkIn(p, r)
   checkIn(q, r)
@@ -73,17 +80,10 @@ val p = parent.keys.map(
 
 
 case class cmp(uuid: String, ecid: Long, id: String)
-sc.parallelize(p).map(x => {cmp(x._1, x._2, x._3)}).toDF.saveAsParquetFile("/data/cfs/dev01/work/custm/components")
+sc.parallelize(p).map(x => {cmp(x._1, x._2, x._3)}).toDF.saveAsParquetFile("/data/cfs/dev01/work/custm/components-1")
 
 
-def checkIn(site: String, ecid: Long): Unit = {
-  if(!parent.contains(site)) {
-    parent(site) = site
-    size(site) = 1
-    cluster(site) = UUID.randomUUID().toString
-    ecid_map(site) = ecid
-  }
-}
+
 
 
 
