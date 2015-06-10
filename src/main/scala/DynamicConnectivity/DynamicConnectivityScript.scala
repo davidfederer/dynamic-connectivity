@@ -1,7 +1,3 @@
-/**
- * Created by david on 26/05/15.
- */
-
 import java.util.UUID
 import scala.collection.mutable
 
@@ -40,7 +36,7 @@ def union(p: String, q: String): Unit = {
     return
   }
 
-//Make smaller root point to larger one
+  //Make smaller root point to larger one
   if (size(rootP) < size(rootQ)) {
     parent(rootP) = rootQ
     size(rootQ) = size(rootQ) + size(rootP)
