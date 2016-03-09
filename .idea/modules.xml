@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dynamic_connectivity.iml" filepath="$PROJECT_DIR$/.idea/modules/dynamic_connectivity.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dynamic_connectivity-build.iml" filepath="$PROJECT_DIR$/.idea/modules/dynamic_connectivity-build.iml" />
     </modules>
   </component>
 </project>
